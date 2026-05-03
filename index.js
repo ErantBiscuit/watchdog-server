@@ -1,57 +1,237 @@
 const mineflayer = require('mineflayer')
 const express = require('express')
 const mc = require('minecraft-protocol')
+
 const app = express()
 
-// Variables de entorno (Se configuran en Render después)
-const HOST = process.env.SERVER_IP 
-const PORT = parseInt(process.env.SERVER_PORT) || 25565
-const VERSION = "1.21.11" // AJUSTA A TU VERSIÓN
+app.get('/', (req, res) => {
+    res.send('Watchdog activo')
+})
 
-app.get('/', (req, res) => res.send('Watchdog Funcionando ✅'))
-app.listen(process.env.PORT || 3000)
+app.listen(3000)
+
+const HOST = 'TUIP.aternos.me'
+const PORT = 25565
 
 let bot = null
+let connecting = false
 
-function checkServer() {
-    console.log(`[${new Date().toLocaleTimeString()}] Verificando ${HOST}...`)
-    
-    mc.ping({ host: HOST, port: PORT }, (err, res) => {
+function random(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+function activeHours() {
+    const now = new Date()
+    const hour = now.getHours()
+
+    return hour >= 6 && hour < 24
+}
+
+async function watchdogLoop() {
+
+    if (!activeHours()) {
+
+        console.log('Horario inactivo')
+
+        setTimeout(watchdogLoop, 5 * 60 * 1000)
+
+        return
+    }
+
+    if (bot || connecting) {
+
+        setTimeout(watchdogLoop, random(15, 30) * 1000)
+
+        return
+    }
+
+    console.log('Verificando servidor...')
+
+    mc.ping({
+        host: HOST,
+        port: PORT
+    }, (err, res) => {
+
         if (err) {
-            console.log('❌ Server offline. Reintentando...');
-            bot = null;
-            setTimeout(checkServer, 1 * 60 * 1000)
-            return
+
+            console.log('Servidor apagado o iniciando')
+
+            createBot()
+
+        } else {
+
+            console.log('Servidor detectado')
+
+            createBot()
         }
-        console.log(`✅ Server online.`);
-        if (!bot) createBot()
-        setTimeout(checkServer, 2 * 60 * 1000)
+
+        setTimeout(
+            watchdogLoop,
+            random(15, 25) * 1000
+        )
     })
 }
 
 function createBot() {
-    if (bot) return
+
+    if (bot || connecting) return
+
+    connecting = true
+
+    console.log('Intentando conectar...')
+
     bot = mineflayer.createBot({
         host: HOST,
         port: PORT,
-        username: 'Watchdog_Bot',
-        version: VERSION,
-        skipValidation: true, 
-        connectTimeout: 10000
+
+        username: 'WatchdogBot',
+
+        version: false
     })
 
-    bot.on('spawn', () => {
-        console.log('🤖 Bot conectado.');
-        setInterval(() => {
-            if (bot) {
-                bot.setControlState('jump', true)
-                setTimeout(() => bot.setControlState('jump', false), 500)
-            }
-        }, 60000)
+    bot.once('login', () => {
+
+        console.log('Login exitoso')
+
+        connecting = false
     })
 
-    bot.on('end', () => { bot = null })
-    bot.on('error', (err) => console.log('🔥 Error:', err.message))
+    bot.once('spawn', () => {
+
+        console.log('Spawn completado')
+
+        antiAfkLoop()
+
+        randomDisconnectLoop()
+    })
+
+    bot.on('end', () => {
+
+        console.log('Bot desconectado')
+
+        bot = null
+        connecting = false
+
+        setTimeout(() => {
+
+            createBot()
+
+        }, random(5000, 15000))
+    })
+
+    bot.on('kicked', reason => {
+
+        console.log('Kick:', reason)
+
+    })
+
+    bot.on('error', err => {
+
+        console.log('Error:', err.message)
+
+    })
 }
 
-checkServer()
+function antiAfkLoop() {
+
+    if (!bot) return
+
+    const actions = [
+        'forward',
+        'back',
+        'left',
+        'right',
+        'jump',
+        'sprint',
+        'sneak'
+    ]
+
+    const action =
+        actions[random(0, actions.length - 1)]
+
+    bot.look(
+        Math.random() * Math.PI * 2,
+        Math.random() * 0.8,
+        true
+    )
+
+    if (action === 'jump') {
+
+        bot.setControlState('jump', true)
+
+        setTimeout(() => {
+
+            if (bot)
+                bot.setControlState('jump', false)
+
+        }, random(300, 1200))
+
+    } else if (action === 'sprint') {
+
+        bot.setControlState('forward', true)
+        bot.setControlState('sprint', true)
+
+        setTimeout(() => {
+
+            if (!bot) return
+
+            bot.setControlState('forward', false)
+            bot.setControlState('sprint', false)
+
+        }, random(1000, 4000))
+
+    } else {
+
+        bot.setControlState(action, true)
+
+        setTimeout(() => {
+
+            if (bot)
+                bot.setControlState(action, false)
+
+        }, random(1000, 5000))
+    }
+
+    // Miradas humanas
+    setTimeout(() => {
+
+        if (bot) {
+
+            bot.look(
+                Math.random() * Math.PI * 2,
+                Math.random() * 0.8,
+                true
+            )
+
+        }
+
+    }, random(2000, 7000))
+
+    // Pausas aleatorias
+    setTimeout(
+        antiAfkLoop,
+        random(15000, 60000)
+    )
+}
+
+function randomDisconnectLoop() {
+
+    if (!bot) return
+
+    const disconnectTime =
+        random(45, 120) * 60 * 1000
+
+    setTimeout(() => {
+
+        if (bot) {
+
+            console.log('Desconexión humana')
+
+            bot.quit()
+
+        }
+
+    }, disconnectTime)
+}
+
+watchdogLoop()
