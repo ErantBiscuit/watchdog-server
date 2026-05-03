@@ -25,7 +25,7 @@ function checkServer() {
         }
         console.log(`✅ Server online.`);
         if (!bot) createBot()
-        setTimeout(checkServer, 3 * 60 * 1000)
+        setTimeout(checkServer, 2 * 60 * 1000)
     })
 }
 
@@ -37,7 +37,7 @@ function createBot() {
         username: 'Watchdog_Bot',
         version: VERSION,
         skipValidation: true, 
-        connectTimeout: 60000
+        connectTimeout: 10000
     })
 
     bot.on('spawn', () => {
