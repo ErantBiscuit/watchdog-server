@@ -74,11 +74,11 @@ async function watchdogLoop() {
 
 function createBot() {
 
-    if (bot || connecting) return
+    if (connecting) return
 
     connecting = true
 
-    console.log('Intentando conectar...')
+    console.log('Intentando conexión agresiva...')
 
     bot = mineflayer.createBot({
         host: HOST,
@@ -86,7 +86,9 @@ function createBot() {
 
         username: 'WatchdogBot',
 
-        version: false
+        version: false,
+
+        connectTimeout: 10000
     })
 
     bot.once('login', () => {
@@ -107,16 +109,23 @@ function createBot() {
 
     bot.on('end', () => {
 
-        console.log('Bot desconectado')
+        console.log('Conexión terminada')
 
         bot = null
         connecting = false
 
+        // REINTENTO RÁPIDO
         setTimeout(() => {
 
             createBot()
 
-        }, random(5000, 15000))
+        }, random(3000, 7000))
+    })
+
+    bot.on('error', err => {
+
+        console.log('Error:', err.message)
+
     })
 
     bot.on('kicked', reason => {
@@ -124,11 +133,371 @@ function createBot() {
         console.log('Kick:', reason)
 
     })
+}function createBot() {
+
+    if (connecting) return
+
+    connecting = true
+
+    console.log('Intentando conexión agresiva...')
+
+    bot = mineflayer.createBot({
+        host: HOST,
+        port: PORT,
+
+        username: 'WatchdogBot',
+
+        version: false,
+
+        connectTimeout: 10000
+    })
+
+    bot.once('login', () => {
+
+        console.log('Login exitoso')
+
+        connecting = false
+    })
+
+    bot.once('spawn', () => {
+
+        console.log('Spawn completado')
+
+        antiAfkLoop()
+
+        randomDisconnectLoop()
+    })
+
+    bot.on('end', () => {
+
+        console.log('Conexión terminada')
+
+        bot = null
+        connecting = false
+
+        // REINTENTO RÁPIDO
+        setTimeout(() => {
+
+            createBot()
+
+        }, random(3000, 7000))
+    })
 
     bot.on('error', err => {
 
         console.log('Error:', err.message)
 
+    })
+
+    bot.on('kicked', reason => {
+
+        console.log('Kick:', reason)
+
+    })
+}function createBot() {
+
+    if (connecting) return
+
+    connecting = true
+
+    console.log('Intentando conexión agresiva...')
+
+    bot = mineflayer.createBot({
+        host: HOST,
+        port: PORT,
+
+        username: 'WatchdogBot',
+
+        version: false,
+
+        connectTimeout: 10000
+    })
+
+    bot.once('login', () => {
+
+        console.log('Login exitoso')
+
+        connecting = false
+    })
+
+    bot.once('spawn', () => {
+
+        console.log('Spawn completado')
+
+        antiAfkLoop()
+
+        randomDisconnectLoop()
+    })
+
+    bot.on('end', () => {
+
+        console.log('Conexión terminada')
+
+        bot = null
+        connecting = false
+
+        // REINTENTO RÁPIDO
+        setTimeout(() => {
+
+            createBot()
+
+        }, random(3000, 7000))
+    })
+
+    bot.on('error', err => {
+
+        console.log('Error:', err.message)
+
+    })
+
+    bot.on('kicked', reason => {
+
+        console.log('Kick:', reason)
+
+    })
+}function createBot() {
+
+    if (connecting) return
+
+    connecting = true
+
+    console.log('Intentando conexión agresiva...')
+
+    bot = mineflayer.createBot({
+        host: HOST,
+        port: PORT,
+
+        username: 'WatchdogBot',
+
+        version: false,
+
+        connectTimeout: 10000
+    })
+
+    bot.once('login', () => {
+
+        console.log('Login exitoso')
+
+        connecting = false
+    })
+
+    bot.once('spawn', () => {
+
+        console.log('Spawn completado')
+
+        antiAfkLoop()
+
+        randomDisconnectLoop()
+    })
+
+    bot.on('end', () => {
+
+        console.log('Conexión terminada')
+
+        bot = null
+        connecting = false
+
+        // REINTENTO RÁPIDO
+        setTimeout(() => {
+
+            createBot()
+
+        }, random(3000, 7000))
+    })
+
+    bot.on('error', err => {
+
+        console.log('Error:', err.message)
+
+    })
+
+    bot.on('kicked', reason => {
+
+        console.log('Kick:', reason)
+
+    })
+}function createBot() {
+
+    if (connecting) return
+
+    connecting = true
+
+    console.log('Intentando conexión agresiva...')
+
+    bot = mineflayer.createBot({
+        host: HOST,
+        port: PORT,
+
+        username: 'WatchdogBot',
+
+        version: false,
+
+        connectTimeout: 10000
+    })
+
+    bot.once('login', () => {
+
+        console.log('Login exitoso')
+
+        connecting = false
+    })
+
+    bot.once('spawn', () => {
+
+        console.log('Spawn completado')
+
+        antiAfkLoop()
+
+        randomDisconnectLoop()
+    })
+
+    bot.on('end', () => {
+
+        console.log('Conexión terminada')
+
+        bot = null
+        connecting = false
+
+        // REINTENTO RÁPIDO
+        setTimeout(() => {
+
+            createBot()
+
+        }, random(3000, 7000))
+    })
+
+    bot.on('error', err => {
+
+        console.log('Error:', err.message)
+
+    })
+
+    bot.on('kicked', reason => {
+
+        console.log('Kick:', reason)
+
+    })
+}function createBot() {
+
+    if (connecting) return
+
+    connecting = true
+
+    console.log('Intentando conexión agresiva...')
+
+    bot = mineflayer.createBot({
+        host: HOST,
+        port: PORT,
+
+        username: 'WatchdogBot',
+
+        version: false,
+
+        connectTimeout: 10000
+    })
+
+    bot.once('login', () => {
+
+        console.log('Login exitoso')
+
+        connecting = false
+    })
+
+    bot.once('spawn', () => {
+
+        console.log('Spawn completado')
+
+        antiAfkLoop()
+
+        randomDisconnectLoop()
+    })
+
+    bot.on('end', () => {
+
+        console.log('Conexión terminada')
+
+        bot = null
+        connecting = false
+
+        // REINTENTO RÁPIDO
+        setTimeout(() => {
+
+            createBot()
+
+        }, random(3000, 7000))
+    })
+
+    bot.on('error', err => {
+
+        console.log('Error:', err.message)
+
+    })
+
+    bot.on('kicked', reason => {
+
+        console.log('Kick:', reason)
+
+    })
+}
+function createBot() {
+
+    if (connecting) return
+
+    connecting = true
+
+    console.log('Intentando conexión agresiva...')
+
+    bot = mineflayer.createBot({
+        host: HOST,
+        port: PORT,
+
+        username: 'WatchdogBot',
+
+        version: false,
+
+        connectTimeout: 10000
+    })
+
+    bot.once('login', () => {
+
+        console.log('Login exitoso')
+
+        connecting = false
+    })
+
+    bot.once('spawn', () => {
+
+        console.log('Spawn completado')
+
+        antiAfkLoop()
+
+        randomDisconnectLoop()
+    })
+
+    bot.on('end', () => {
+
+        console.log('Conexión terminada')
+
+        bot = null
+        connecting = false
+
+        // REINTENTO RÁPIDO
+        setTimeout(() => {
+
+            createBot()
+
+        }, random(3000, 7000))
+    })
+
+    bot.on('error', err => {
+
+        console.log('Error:', err.message)
+
+    })
+
+    bot.on('kicked', reason => {
+
+        console.log('Kick:', reason)
     })
 }
 
