@@ -20,7 +20,7 @@ function checkServer() {
         if (err) {
             console.log('❌ Server offline. Reintentando...');
             bot = null;
-            setTimeout(checkServer, 2 * 60 * 1000)
+            setTimeout(checkServer, 1 * 60 * 1000)
             return
         }
         console.log(`✅ Server online.`);
