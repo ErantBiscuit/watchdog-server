@@ -111,7 +111,7 @@ async function watchdogLoop() {
 
         setTimeout(
             watchdogLoop,
-            random(15000, 25000)
+            random(45000, 90000)
         )
     })
 }
@@ -175,7 +175,7 @@ function createBot() {
 
             createBot()
 
-        }, random(3000, 7000))
+        }, random(20000, 45000))
     })
 
 
