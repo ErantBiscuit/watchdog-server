@@ -8,10 +8,10 @@ app.listen(3000)
 // ======================================
 // CONFIGURACIÓN (Vía Variables de Entorno)
 // ======================================
-const HOST = process.env.SERVER_IP || 'ErantBiscuit91-nHIh.aternos.me'
-const PORT = parseInt(process.env.SERVER_PORT) || 26881
+const HOST = process.env.SERVER_IP || 'ZorrosLand.aternos.me'
+const PORT = parseInt(process.env.SERVER_PORT) || 55714
 const USERNAME = 'Watchdog_Bot'
-const VERSION = "1.20.1" // <--- ASEGURATE QUE SEA LA DE TU SERVER
+const VERSION = "1.26.14.1" // <--- ASEGURATE QUE SEA LA DE TU SERVER
 
 let bot = null
 let afkTimer = null
