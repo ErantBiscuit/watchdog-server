@@ -3,77 +3,54 @@ const express = require(‘express’);
 
 const app = express();
 
-app.get(’/’, (req, res) => {
-res.send(‘Watchdog activo - ZorrosLand Bedrock’);
+app.get(’/’, function(req, res) {
+res.send(‘Watchdog activo’);
 });
 
-app.listen(3000, () => {
-console.log(‘Server express en puerto 3000’);
+app.listen(3000, function() {
+console.log(‘Express en puerto 3000’);
 });
-
-// ======================================
-// CONFIGURACIÓN ZOROSLAND BEDROCK
-// ======================================
 
 const HOST = ‘ZorrosLand.aternos.me’;
 const PORT = 55714;
 const USERNAME = ‘WatchdogBot’;
 
-// ======================================
-// VARIABLES GLOBALES
-// ======================================
-
 let bot = null;
 let connecting = false;
 let respawnAttempts = 0;
 const MAX_RESPAWN_ATTEMPTS = 5;
-let lastHealthCheck = Date.now();
-
-// ======================================
-// UTILIDADES
-// ======================================
 
 function random(min, max) {
 return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 function log(msg) {
-const timestamp = new Date().toLocaleTimeString(‘es-MX’);
+var timestamp = new Date().toLocaleTimeString(‘es-MX’);
 console.log(’[’ + timestamp + ’] ’ + msg);
 }
 
-// ======================================
-// WATCHDOG PRINCIPAL
-// ======================================
-
 function watchdogLoop() {
-// Si ya hay bot conectado, solo hacer chequeo
 if (bot && bot.health !== undefined) {
 setTimeout(watchdogLoop, random(30000, 60000));
 return;
 }
 
-// Si está conectando, esperar
 if (connecting) {
 setTimeout(watchdogLoop, random(10000, 20000));
 return;
 }
 
-log(‘🔍 Verificando servidor…’);
+log(‘Verificando servidor…’);
 createBot();
 
 setTimeout(watchdogLoop, random(45000, 90000));
 }
 
-// ======================================
-// CREAR BOT CON AUTO-RESPAWN
-// ======================================
-
 function createBot() {
 if (connecting || bot) return;
 
 connecting = true;
-log(‘🤖 Intentando conexión a Bedrock…’);
+log(‘Conectando al bot…’);
 
 try {
 bot = mineflayer.createBot({
@@ -86,36 +63,30 @@ auth: ‘offline’
 });
 
 ```
-// LOGIN EXITOSO
 bot.once('login', function() {
-  log('✅ Login exitoso en Bedrock');
+  log('Login exitoso');
   connecting = false;
   respawnAttempts = 0;
 });
 
-// SPAWN - BOT APARECIÓ EN EL MUNDO
 bot.once('spawn', function() {
-  log('🌍 Spawn completado - Bot en el servidor');
-  lastHealthCheck = Date.now();
-  
-  // Iniciar comportamientos
+  log('Bot spawneado');
   antiAfkLoop();
   healthCheckLoop();
 });
 
-// MUERTE DEL BOT
 bot.on('death', function() {
-  log('💀 Bot murió - intentando respawn...');
+  log('Bot murio');
   respawnAttempts++;
 
   if (respawnAttempts <= MAX_RESPAWN_ATTEMPTS) {
     setTimeout(function() {
       if (bot) {
-        log('🔄 Respawn intento ' + respawnAttempts + '/' + MAX_RESPAWN_ATTEMPTS);
+        log('Respawn intento: ' + respawnAttempts);
       }
     }, 2000);
   } else {
-    log('❌ Demasiados respawns - reconectando completamente');
+    log('Reconectando...');
     if (bot) bot.quit();
     bot = null;
     connecting = false;
@@ -123,66 +94,45 @@ bot.on('death', function() {
   }
 });
 
-// CAMBIO DE SALUD
 bot.on('health', function() {
-  const health = bot.health || 20;
-  const food = bot.food || 20;
+  var health = bot.health || 20;
+  var food = bot.food || 20;
 
   if (health < 5) {
-    log('⚠️ ¡ALERTA! Salud baja: ' + health + '/20');
+    log('Salud baja: ' + health);
     tryEat();
   }
 
   if (health <= 0) {
-    log('💀 Bot sin salud detectado');
     respawnAttempts++;
   }
 });
 
-// DESCONEXIÓN
 bot.on('end', function() {
-  log('🔌 Conexión terminada - Reintentando...');
+  log('Desconectado');
   bot = null;
   connecting = false;
 
-  // Reintento rápido
   setTimeout(function() {
     createBot();
   }, random(15000, 30000));
 });
 
-// ERRORES
 bot.on('error', function(err) {
-  if (err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT') {
-    log('⚠️ Error de conexión normal: ' + err.code);
-    return;
-  }
-  log('❌ Error: ' + err.message);
+  log('Error: ' + err.message);
 });
 
-// KICKS
 bot.on('kicked', function(reason) {
-  log('🚫 Kick: ' + reason);
-});
-
-// CHAT
-bot.on('chat', function(username, message) {
-  if (username !== USERNAME) {
-    log('💬 ' + username + ': ' + message);
-  }
+  log('Kick: ' + reason);
 });
 ```
 
 } catch (error) {
-log(’❌ Error al crear bot: ’ + error.message);
+log(’Error al crear bot: ’ + error.message);
 connecting = false;
 setTimeout(createBot, 30000);
 }
 }
-
-// ======================================
-// ANTI-AFK REALISTA
-// ======================================
 
 function antiAfkLoop() {
 if (!bot || !bot.entity) {
@@ -190,33 +140,21 @@ setTimeout(antiAfkLoop, 5000);
 return;
 }
 
-var actions = [
-‘forward’,
-‘back’,
-‘left’,
-‘right’,
-‘jump’,
-‘sprint’
-];
-
+var actions = [‘forward’, ‘back’, ‘left’, ‘right’, ‘jump’, ‘sprint’];
 var action = actions[random(0, actions.length - 1)];
 
-// Mirada realista
 bot.look(
 Math.random() * Math.PI * 2,
 (Math.random() - 0.5) * 0.5,
 true
 );
 
-// SALTO
 if (action === ‘jump’) {
 bot.setControlState(‘jump’, true);
 setTimeout(function() {
 if (bot) bot.setControlState(‘jump’, false);
 }, random(300, 800));
-}
-// SPRINT MOVIMIENTO
-else if (action === ‘sprint’) {
+} else if (action === ‘sprint’) {
 bot.setControlState(‘forward’, true);
 bot.setControlState(‘sprint’, true);
 setTimeout(function() {
@@ -225,29 +163,21 @@ bot.setControlState(‘forward’, false);
 bot.setControlState(‘sprint’, false);
 }
 }, random(2000, 5000));
-}
-// MOVIMIENTO NORMAL
-else {
+} else {
 bot.setControlState(action, true);
 setTimeout(function() {
 if (bot) bot.setControlState(action, false);
 }, random(1500, 4000));
 }
 
-// Segunda mirada
 setTimeout(function() {
 if (bot) {
 bot.look(Math.random() * Math.PI * 2, (Math.random() - 0.5) * 0.3, true);
 }
 }, random(2000, 5000));
 
-// Siguiente acción (20-70 segundos)
 setTimeout(antiAfkLoop, random(20000, 70000));
 }
-
-// ======================================
-// CHEQUEO DE SALUD CONSTANTE
-// ======================================
 
 function healthCheckLoop() {
 if (!bot) {
@@ -258,9 +188,8 @@ return;
 var health = bot.health || 20;
 var food = bot.food || 20;
 
-log(’❤️ Salud: ’ + health + ’/20 | 🍗 Comida: ’ + food + ‘/20’);
+log(’Salud: ’ + health + ’/20 - Comida: ’ + food + ‘/20’);
 
-// Si está enfermo, comer
 if (health < 15 || food < 15) {
 tryEat();
 }
@@ -268,55 +197,36 @@ tryEat();
 setTimeout(healthCheckLoop, random(30000, 60000));
 }
 
-// ======================================
-// INTENTAR COMER
-// ======================================
-
 function tryEat() {
 if (!bot) return;
 
-// Buscar comida en el inventario
 var foodItems = [
 ‘cooked_beef’, ‘cooked_pork’, ‘cooked_chicken’, ‘cooked_mutton’,
 ‘bread’, ‘apple’, ‘cooked_cod’, ‘cooked_salmon’,
-‘baked_potatoes’, ‘carrots’, ‘golden_apple’, ‘melon_slice’,
-‘pumpkin_pie’, ‘beetroot’, ‘cooked_rabbit’
+‘baked_potatoes’, ‘carrots’, ‘golden_apple’
 ];
 
 for (var i = 0; i < foodItems.length; i++) {
 var food = foodItems[i];
 var item = bot.inventory.findInventoryObject({ name: food });
 if (item) {
-log(’🍽️ Comiendo ’ + food + ‘…’);
-bot.consume().catch(function() {
-// Ignorar errores de consumo
-});
+log(’Comiendo: ’ + food);
+bot.consume();
 return;
 }
 }
-
-log(‘⚠️ Sin comida disponible’);
 }
 
-// ======================================
-// INICIAR WATCHDOG
-// ======================================
-
-log(‘🚀 Iniciando Watchdog Bot para ZorrosLand Bedrock’);
-log(’📍 ’ + HOST + ‘:’ + PORT);
-log(’👤 Usuario: ’ + USERNAME);
-log(‘⚙️ Modo: Permanentemente conectado (sin desconexiones)’);
-
+log(‘Iniciando Watchdog’);
 watchdogLoop();
 
-// Manejo de errores global
 process.on(‘uncaughtException’, function(err) {
-log(’🔥 ERROR CRÍTICO: ’ + err.message);
+log(’Error critico: ’ + err.message);
 if (bot) bot.quit();
 bot = null;
 setTimeout(createBot, 30000);
 });
 
 process.on(‘unhandledRejection’, function(reason) {
-log(’⚠️ Promesa rechazada: ’ + reason);
+log(’Promesa rechazada: ’ + reason);
 });
