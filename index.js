@@ -21,10 +21,16 @@ function random(min, max) {
 }
 
 function activeHours() {
-    const now = new Date()
-    const hour = now.getHours()
 
-    return hour >= 6 && hour < 24
+    const now = new Date()
+
+    // UTC-6 México
+    const mexicoHour =
+        (now.getUTCHours() - 6 + 24) % 24
+
+    console.log('Hora México:', mexicoHour)
+
+    return mexicoHour >= 6 && mexicoHour < 24
 }
 
 async function watchdogLoop() {
