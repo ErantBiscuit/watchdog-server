@@ -180,10 +180,20 @@ function createBot() {
 
 
     // ERRORES
-    bot.on('error', err => {
+ bot.on('error', err => {
 
-        console.log('Error:', err.message)
-    })
+    if (
+        err.code === 'ECONNRESET' ||
+        err.code === 'ETIMEDOUT'
+    ) {
+
+        console.log('Reconexión normal:', err.code)
+
+        return
+    }
+
+    console.log('Error:', err.message)
+})
 
 
     // KICKS
