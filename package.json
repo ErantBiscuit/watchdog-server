@@ -12,7 +12,7 @@
      "dependencies": {
        "express": "^4.18.2",
        "mineflayer": "^4.37.1",
-       "aternos-api": "^2.1.0",
+       "aternos-api": "^1.6.0",
        "axios": "^1.6.0",
        "node-cron": "^3.0.2"
      }
