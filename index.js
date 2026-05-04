@@ -1,6 +1,6 @@
 const mineflayer = require('mineflayer')
 const express = require('express')
-const axios = require('axios')
+const AternosClient = require('aternos-client')
 
 const app = express()
 app.get('/', (req, res) => res.send('Watchdog activo'))
@@ -14,10 +14,9 @@ const PORT         = 26881
 const USERNAME     = 'WatchdogBot'
 
 // Guarda estos como variables de entorno en Render:
-// ATERNOS_USER, ATERNOS_PASS, ATERNOS_SERVER
+// ATERNOS_USER, ATERNOS_PASS
 const ATERNOS_USER   = process.env.ATERNOS_USER
 const ATERNOS_PASS   = process.env.ATERNOS_PASS
-const SERVER_NAME    = process.env.ATERNOS_SERVER
 
 // Horario Querétaro (UTC-6)
 const HORA_INICIO = 6   // 6:00 AM — encender y conectar
@@ -30,7 +29,7 @@ let bot               = null
 let connecting        = false
 let afkTimer          = null
 let servidorEncendido = false
-let aternoscookie    = null
+let aternos           = null
 
 // ======================================
 // UTILIDADES
@@ -61,98 +60,41 @@ function esperar(ms) {
 }
 
 // ======================================
-// CONTROL DE ATERNOS CON AXIOS
+// CONTROL DE ATERNOS
 // ======================================
 async function loginAternos() {
   try {
     log('Iniciando sesión en Aternos...')
-    
-    const response = await axios.post('https://api.aternos.org/v1/login', {
-      username: ATERNOS_USER,
-      password: ATERNOS_PASS
-    }, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
-    })
-
-    if (response.data && response.data.token) {
-      aternoscookie = response.data.token
-      log('✔ Login en Aternos exitoso')
-      return true
-    }
-    
-    log('Error: No se recibió token de Aternos')
-    return false
+    aternos = new AternosClient()
+    await aternos.login(ATERNOS_USER, ATERNOS_PASS)
+    log('✔ Login en Aternos exitoso')
+    return true
   } catch (err) {
     log(`Error Aternos login: ${err.message}`)
     return false
   }
 }
 
-async function obtenerServidores() {
-  try {
-    if (!aternoscookie) {
-      const ok = await loginAternos()
-      if (!ok) return null
-    }
-
-    const response = await axios.get('https://api.aternos.org/v1/servers', {
-      headers: {
-        'Authorization': `Bearer ${aternoscookie}`,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
-    })
-
-    if (response.data && response.data.servers) {
-      return response.data.servers
-    }
-    return null
-  } catch (err) {
-    log(`Error obteniendo servidores: ${err.message}`)
-    return null
-  }
-}
-
-async function obtenerEstadoServidor(serverid) {
-  try {
-    if (!aternoscookie) {
-      const ok = await loginAternos()
-      if (!ok) return null
-    }
-
-    const response = await axios.get(`https://api.aternos.org/v1/servers/${serverid}/status`, {
-      headers: {
-        'Authorization': `Bearer ${aternoscookie}`,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
-    })
-
-    return response.data.status
-  } catch (err) {
-    log(`Error obteniendo estado: ${err.message}`)
-    return null
-  }
-}
-
 async function encenderServidor() {
   if (servidorEncendido) return true
+  if (!aternos) {
+    const ok = await loginAternos()
+    if (!ok) return false
+  }
 
   try {
-    log('Intentando obtener servidor Aternos...')
-    const servidores = await obtenerServidores()
+    log('Obteniendo lista de servidores...')
+    const servers = await aternos.listServers()
     
-    if (!servidores || servidores.length === 0) {
+    if (!servers || servers.length === 0) {
       log('No se encontraron servidores')
       return false
     }
 
-    const servidor = servidores.find(s => s.name === SERVER_NAME) || servidores[0]
-    const serverid = servidor.id
+    const servidor = servers[0]
+    log(`Servidor encontrado: ${servidor.name || servidor.id}`)
 
-    log(`Servidor encontrado: ${servidor.name}`)
-
-    const status = await obtenerEstadoServidor(serverid)
+    const status = await servidor.getStatus()
     log(`Estado actual: ${status}`)
 
     if (status === 'online') {
@@ -161,21 +103,14 @@ async function encenderServidor() {
       return true
     }
 
-    if (status === 'offline' || status === 'stopped') {
-      log('Enviando comando de encendido...')
-      
-      await axios.post(`https://api.aternos.org/v1/servers/${serverid}/start`, {}, {
-        headers: {
-          'Authorization': `Bearer ${aternoscookie}`,
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        }
-      })
+    if (status === 'offline') {
+      log('Encendiendo servidor...')
+      await servidor.start()
 
       log('Esperando a que el servidor se encienda (hasta 4 minutos)...')
-      
       for (let i = 0; i < 24; i++) {
         await esperar(10000)
-        const s = await obtenerEstadoServidor(serverid)
+        const s = await servidor.getStatus()
         log(`Estado: ${s}`)
         if (s === 'online') {
           log('✔ Servidor en línea')
@@ -199,24 +134,17 @@ async function encenderServidor() {
 }
 
 async function apagarServidor() {
-  if (!servidorEncendido) return
+  if (!servidorEncendido || !aternos) return
 
   try {
     log('Apagando servidor Aternos...')
+    const servers = await aternos.listServers()
     
-    const servidores = await obtenerServidores()
-    if (!servidores || servidores.length === 0) return
+    if (!servers || servers.length === 0) return
 
-    const servidor = servidores.find(s => s.name === SERVER_NAME) || servidores[0]
-    const serverid = servidor.id
-
-    await axios.post(`https://api.aternos.org/v1/servers/${serverid}/stop`, {}, {
-      headers: {
-        'Authorization': `Bearer ${aternoscookie}`,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
-    })
-
+    const servidor = servers[0]
+    await servidor.stop()
+    
     servidorEncendido = false
     log('✔ Servidor apagado')
   } catch (err) {
