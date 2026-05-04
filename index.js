@@ -10,8 +10,8 @@ app.get('/', (req, res) => {
 
 app.listen(3000)
 
-const HOST = 'TUIP.aternos.me'
-const PORT = 25565
+const HOST = 'ErantBiscuit91-nHIh.aternos.me'
+const PORT = 26881
 
 let bot = null
 let connecting = false
