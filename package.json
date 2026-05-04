@@ -1,7 +1,7 @@
 {
   "name": "watchdog-server",
   "version": "1.0.0",
-  "description": "",
+  "description": "Bot para mantener activo servidor de Aternos",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -13,6 +13,7 @@
   "dependencies": {
     "express": "^4.18.2",
     "minecraft-protocol": "^1.66.0",
-    "mineflayer": "^4.37.1"
+    "mineflayer": "^4.37.1",
+    "aternos-api": "^2.0.0"
   }
 }
