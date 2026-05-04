@@ -1,19 +1,19 @@
 {
-  "name": "watchdog-server",
-  "version": "1.0.0",
-  "description": "Bot para mantener activo servidor de Aternos",
-  "main": "index.js",
-  "scripts": {
-    "start": "node index.js"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  },
-  "dependencies": {
-    "express": "^4.18.2",
-    "minecraft-protocol": "^1.66.0",
-    "mineflayer": "^4.37.1",
-    "axios": "^1.6.0",
-    "node-cron": "^3.0.2"
-  }
-}
+     "name": "watchdog-server",
+     "version": "1.0.0",
+     "description": "Bot para mantener activo servidor de Aternos",
+     "main": "index.js",
+     "scripts": {
+       "start": "node index.js"
+     },
+     "engines": {
+       "node": ">=18.0.0"
+     },
+     "dependencies": {
+       "express": "^4.18.2",
+       "mineflayer": "^4.37.1",
+       "aternos-api": "^2.1.0",
+       "axios": "^1.6.0",
+       "node-cron": "^3.0.2"
+     }
+   }
