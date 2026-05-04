@@ -11,7 +11,7 @@ app.listen(3000)
 // CONFIGURACIÓN — edita esto
 // ======================================
 const HOST         = 'ErantBiscuit91-nHIh.aternos.me'
-const PORT         = 25565
+const PORT         = 26881
 const USERNAME     = 'WatchdogBot'
  
 // Guarda estos como variables de entorno en Render:
